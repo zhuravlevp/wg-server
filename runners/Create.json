@@ -1,0 +1,31 @@
+{
+  "name": "Create",
+  "script_path": "/app/conf/scripts/add_user.sh",
+  "output_files": [
+    "/users/${auth.username}.zip"
+  ],
+  "output_format": "html",
+  "parameters": [
+    {
+      "name": "User",
+      "required": true,
+      "type": "list",
+      "default": "${auth.username}",
+      "values": {
+        "script": "echo ${auth.username}",
+        "shell": false
+      },
+      "env_var": "AUTH_USERNAME"
+    },
+    {
+      "name": "Peers",
+      "required": true,
+      "type": "int",
+      "default": "10",
+      "description": "\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u043a\u043e\u043d\u0444\u0438\u0433\u043e\u0432",
+      "min": "1",
+      "max": "25",
+      "env_var": "PEERS"
+    }
+  ]
+}

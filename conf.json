@@ -1,0 +1,18 @@
+{
+  "port": 5000,
+  "address": "0.0.0.0",
+  "title": "WG VPN",
+  "auth": {
+      "type": "google_oauth",
+      "client_id": "COPY PASTE",
+      "secret": "COPY PASTE"
+  },
+  "access": {
+        "allowed_users": [ "*"],
+        "admin_users": [ "YOUR EMAIL"]
+  },
+  "logging": {
+    "execution_file": "$DATE-$ID.log",
+    "execution_date_format": "%y-%m-%d_%H-%M"
+  }
+}

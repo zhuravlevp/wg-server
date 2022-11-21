@@ -1,0 +1,63 @@
+version: "3.3"
+services:
+
+  traefik:
+    image: "traefik:v2.7"
+    restart: always
+    container_name: "traefik"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=${LE_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # redirect all to https
+      #- "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      #- "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      #- "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  server:
+    build:
+      context: ./docker/script-server/
+    container_name: "script-server"
+    volumes:
+      - ./conf.json:/app/conf/conf.json
+      - ./runners:/app/conf/runners
+      - ./scripts:/app/conf/scripts
+      - ./logs:/app/logs/processes
+      - ./users:/users
+      - ./.ssh:/root/.ssh
+    restart: always
+    extra_hosts:
+      - "host.local:host-gateway"
+    labels:
+      # Включить traefik
+      - "traefik.enable=true"
+      ## Для работы с несколькими сетями
+      #- "traefik.docker.network=traefik"
+      ## Ручное указание сервиса и прта для сервиса (8888)
+      - "traefik.http.services.script-server.loadbalancer.server.port=5000"
+      - "traefik.http.routers.script-server.service=script-server"
+      ## HTTP роут
+      - "traefik.http.routers.script-server-http.rule=Host(`${EXT_URL}`)"
+      - "traefik.http.routers.script-server-http.entrypoints=web"
+      ## HTTPS роут + certresolver
+      - "traefik.http.routers.script-server-https.rule=Host(`${EXT_URL}`)"
+      - "traefik.http.routers.script-server-https.entrypoints=websecure"
+      - "traefik.http.routers.script-server-https.tls.certresolver=myresolver"
+      ## redirect to https
+      - "traefik.http.middlewares.app-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.app-redirect-https.redirectscheme.permanent=true"
+      - "traefik.http.routers.script-server-http.middlewares=app-redirect-https"
