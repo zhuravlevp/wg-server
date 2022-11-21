@@ -10,7 +10,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - SERVERURL=wg.voytivit.ru #optional
+      - SERVERURL=${SERVER_ADDRESS} #optional
       - SERVERPORT=${PORT} #optional
       - PEERS=${PEERS} #optional
       - PEERDNS=10.13.${IP}.1 #optional
